@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.388,=D:\DevelopXE\Declen\trunk\SampleFIO\frmMain.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.049,=D:\DevelopXE\Declen\trunk\SampleFIO\DeclThread.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.366,=D:\DevelopXE\Declen\trunk\SampleFIO\padegLocVar.inc</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.087,=D:\DevelopXE\Declen\trunk\SampleFIO\DefineFunc.padeg.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.150,D:\Insures\Project1.dproj=D:\DevelopXE\Declen\trunk\SampleFIO\SamplesFIO.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.419,=D:\DevelopXE\Declen\trunk\SampleFIO\padegFIO.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.495,=D:\DevelopXE\Declen\trunk\SampleFIO\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.846,=D:\Insures\Unit1.pas</Transaction>
+  </Transactions>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="C:\DevelopXE"/>
+    <File Path="..\..\..\FastMM4"/>
+    <File Path="..\..\..\FastMM4\FastMM4.pas"/>
+    <File Path="DeclThread.pas"/>
+    <File Path="frmMain.pas"/>
+    <File Path="frmMain.dfm"/>
+    <File Path="padegFIO.pas"/>
+    <File Path="padegLocVar.inc"/>
+  </ProjectSortOrder>
+</BorlandProject>

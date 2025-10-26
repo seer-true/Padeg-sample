@@ -1,0 +1,92 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Condition="Exists('$(BDS)\bin\CodeGear.Deployment.targets')" Project="$(BDS)\bin\CodeGear.Deployment.targets"/>
+    <ProjectExtensions>
+        <ProjectFileVersion>12</ProjectFileVersion>
+    </ProjectExtensions>
+    <PropertyGroup>
+        <DeviceId Condition="'$(Platform)'=='Android'"/>
+        <DeviceId Condition="'$(Platform)'=='Android64'"/>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(Platform)'=='Win64'"/>
+    <ItemGroup Condition="'$(Platform)'=='Linux64'">
+        <DeployFile Include="..\PadegUTF\padegLocVar.inc" Condition="'$(Config)'=='Release'">
+            <RemoteDir>ctTest\</RemoteDir>
+            <RemoteName>padegLocVar.inc</RemoteName>
+            <DeployClass>ProjectFile</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="..\..\OUT\Win32\Debug\fio.txt" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>ctTest\</RemoteDir>
+            <RemoteName>fio.txt</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="..\..\OUT\Win32\Debug\prof.txt" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>ctTest\</RemoteDir>
+            <RemoteName>prof.txt</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="..\..\OUT\Linux64\Debug\ctTest" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>ctTest\</RemoteDir>
+            <RemoteName>ctTest</RemoteName>
+            <DeployClass>ProjectOutput</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="..\..\OUT\Linux64\Release\ctTest" Condition="'$(Config)'=='Release'">
+            <RemoteDir>ctTest\</RemoteDir>
+            <RemoteName>ctTest</RemoteName>
+            <DeployClass>ProjectOutput</DeployClass>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="..\..\OUT\Win32\Debug\office.txt" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>ctTest\</RemoteDir>
+            <RemoteName>office.txt</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+        <DeployFile Include="..\..\OUT\Linux64\Debug\libPadeg.so" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>ctTest\</RemoteDir>
+            <RemoteName>libPadeg.so</RemoteName>
+            <DeployClass>File</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+        </DeployFile>
+    </ItemGroup>
+    <ItemGroup Condition="'$(Platform)'=='Win32'">
+        <DeployFile Include="..\..\OUT\Win32\Release\ctTest.exe" Condition="'$(Config)'=='Release'">
+            <RemoteDir>ctTest\</RemoteDir>
+            <RemoteName>ctTest.exe</RemoteName>
+            <DeployClass>ProjectOutput</DeployClass>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Overwrite>True</Overwrite>
+            <Required>True</Required>
+        </DeployFile>
+    </ItemGroup>
+    <ItemGroup Condition="'$(Platform)'=='Android64'"/>
+    <ItemGroup Condition="'$(Platform)'=='Android'"/>
+</Project>

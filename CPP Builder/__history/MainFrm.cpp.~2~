@@ -1,0 +1,149 @@
+// ---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+
+#include "MainFrm.h"
+#include "ListFunction.cpp"
+// ---------------------------------------------------------------------------
+#pragma package(smart_init)
+#pragma resource "*.dfm"
+TForm1 *Form1;
+
+// ---------------------------------------------------------------------------
+__fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner) {
+}
+UnicodeString arrayPadeg[] = {
+	"Именительный (кто/что): ", "Родительный (кого/чего нет): ",
+	"Дательный (кому/чему дать): ", "Винительный (кого/что вижу): ",
+	"Творительный (кем/чем горжусь): ", "Предложный (о ком/о чем мечтаю): "};
+
+// ---------------------------------------------------------------------------
+void __fastcall TForm1::cbFIOChange(TObject *Sender) {
+	/* DONE -oVlad : Определение пола и разбивка ФИО на части */
+
+	UnicodeString fio = cbFIO->Text;
+
+	wchar_t * f = fio.c_str();
+	FIO *fname = getFIOParts(f);
+	// eF->SetTextBuf(fname->pLastName);
+	eF->Text = fname->pLastName;
+	eI->Text = fname->pFirstName;
+	eO->Text = fname->pMiddleName;
+	cbSex->ItemIndex = getSex(f);
+	delete fname;
+}
+
+// --------------------------------------------------------------------------
+void __fastcall TForm1::btnDeclClick(TObject *Sender) {
+	/* TODO -oVlad : Склонение функцией GetFIOPadeg */
+	UnicodeString fio;
+	mResult->Lines->Add("================Результат склонения================");
+	for (int i = 1; i < 7; i++) {
+		fio = arrayPadeg[i - 1];
+		fio.operator += (getFIOPadeg(eF->Text.c_str(), eI->Text.c_str(),
+			eO->Text.c_str(), cbSex->ItemIndex, i));
+		mResult->Lines->Add(fio);
+	}
+	mResult->Lines->Add("==============================================");
+}
+
+// ---------------------------------------------------------------------------
+void __fastcall TForm1::FormCreate(TObject *Sender) {
+	// загрузка списка фамилий
+	/* TODO :
+	 проверить на наличие файлов на диске.
+	 В Items внести список по умолчанию взять и делфовского проекта
+	 Установить ItemIndex по умолчанию 0
+	 для всех полей ввода, которые comboBox */
+	cbFIO->Items->LoadFromFile("FIOList.txt");
+
+	cbAppointment->Items->LoadFromFile("AppointmentList.txt");
+
+	cbOffice->Items->LoadFromFile("OfficeList.txt");
+	cbFIO->ItemIndex = 0;
+	cbAppointment->ItemIndex = 0;
+	cbOffice->ItemIndex = 0;
+	/*
+	 if FileExists(ExtractFilePath(Application.ExeName) + 'FIOList.txt') then
+	 eFIO.Items.LoadFromFile(ExtractFilePath(Application.ExeName) + 'FIOList.txt');
+	 eFIO.ItemIndex:=0;
+	 */
+	/* TODO : Выводить в StatusBar (sbMain) ия словаря исключений, путем оюращения к соотвествующей ф-ции DLL */
+}
+// ---------------------------------------------------------------------------
+
+void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action) {
+	cbFIO->Items->SaveToFile("FIOList.txt");
+	cbAppointment->Items->SaveToFile("AppointmentList.txt");
+	cbOffice->Items->SaveToFile("OfficeList.txt");
+}
+
+// ---------------------------------------------------------------------------
+void __fastcall TForm1::btnApp_OffClick(TObject *Sender) {
+	mResult->Lines->Add("================Результат выполнения===============");
+	UnicodeString res;
+	for (int i = 1; i < 7; i++) {
+		res = arrayPadeg[i - 1];
+		res.operator += (getFullAppointmentPadeg(cbAppointment->Text.c_str(),
+			cbOffice->Text.c_str(), i));
+		mResult->Lines->Add(res);
+	}
+	mResult->Lines->Add("==============================================");
+}
+// ---------------------------------------------------------------------------
+
+void __fastcall TForm1::btnDeclAppClick(TObject *Sender) {
+	mResult->Lines->Add("================Результат выполнения===============");
+	UnicodeString res;
+	for (int i = 1; i < 7; i++) {
+		res = arrayPadeg[i - 1];
+		res.operator += (getAppointmentPadeg(cbAppointment->Text.c_str(), i));
+		mResult->Lines->Add(res);
+	}
+	mResult->Lines->Add("==============================================");
+}
+
+// ---------------------------------------------------------------------------
+void __fastcall TForm1::btnDeclOffClick(TObject *Sender) {
+	mResult->Lines->Add("================Результат выполнения===============");
+	UnicodeString res;
+	for (int i = 1; i < 7; i++) {
+		res = arrayPadeg[i - 1];
+		res.operator += (getOfficePadeg(cbOffice->Text.c_str(), i));
+		mResult->Lines->Add(res);
+	}
+	mResult->Lines->Add("==============================================");
+}
+
+// ---------------------------------------------------------------------------
+void __fastcall TForm1::grpResultDblClick(TObject *Sender) {
+	mResult->Lines->Clear();
+}
+
+// ---------------------------------------------------------------------------
+void __fastcall TForm1::btnNewDictClick(TObject *Sender) {
+	wchar_t* nameDict = NULL;
+	nameDict = getExceptionsFileName();
+	if (wcscmp(nameDict, L"") == 0) {
+		OpenDialog1->FileName = nameDict;
+		OpenDialog1->Execute();
+	}
+	else { // если уже был какой то файл словаря
+		OpenDialog1->FileName = nameDict;
+        OpenDialog1->Execute();
+		nameDict = OpenDialog1->FileName.c_str();
+		if (setDict(nameDict)) {
+			sbMain->SimpleText = nameDict;
+		}
+		else {
+			sbMain->SimpleText = L"Error";
+		}
+	}
+}
+// ---------------------------------------------------------------------------
+
+void __fastcall TForm1::btnLoadChangeClick(TObject *Sender) {
+	updateDict();
+}
+// ---------------------------------------------------------------------------

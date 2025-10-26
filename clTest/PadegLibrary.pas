@@ -1,0 +1,955 @@
+///<summary>
+///<para>
+///Интерфейсный модуль для неWin платформ. <br />Про линковку биб-ки читать тут <br /><see href="https://www.kansoftware.ru/?tid=26111" />
+///</para>
+///<para>
+///<br />Windows: Padeg.dll <br />Linux/Android: libPadeg.so <br />macOS/iOS: libPadeg.dylib
+///</para>
+///</summary>
+unit PadegLibrary;
+//Если установлено, то в случае ошибки вызывает исключение
+//или завершает втихую вызывая Exit.
+{$DEFINE RAISEERROR}
+//Если установлено, то в случае ошибки вызывает исключение
+//или завершает втихую вызывая Exit.
+{$DEFINE RAISEERROR}
+{$DEFINE CDECL} //если установлено вызываемые ф-ции - cdecl, иначе stdcall
+
+interface
+
+uses System.Classes, SysUtils;
+
+type
+  TFIOParts = record
+    LastName, FirstName, MiddleName: String;
+  end;
+
+  TPadegLiblary = record
+  const //имя библиотеки
+{$IFDEF MSWINDOWS}
+    LibName: String = 'Padeg.dll';
+{$ENDIF}
+{$IFDEF LINUX}
+    LibName: String = 'libPadeg.so';
+{$ENDIF}
+    class var LibPadeg: HMODULE;
+  public
+    class function LoadPadeg(UpdateFileExcept: Boolean = False): Integer; static;
+  end;
+
+//ф-ции склонения ФИО
+function GetIFPadeg(pFirstName, pLastName: String; bSex: Boolean; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetIFPadegFS(pIF: String; bSex: Boolean; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetFIOPadeg(pLastName, pFirstName, pMiddleName: String; bSex: Boolean; nPadeg: LongInt): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetFIOPadegAS(pLastName, pFirstName, pMiddleName: String; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetFIOPadegFS(pFIO: String; bSex: Boolean; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetFIOPadegFSAS(pFIO: String; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+//восстановление ФИО
+function GetNominativePadeg(pFIO: String): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+//склонение должностей и подразделений
+function GetAppointment(pAppointment: String; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetFullAppointment(pAppointment, pOffice: String; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetOffice(pOffice: String; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+//вспомогательные ф-ции
+function GetFIOParts(pFIO: String): TFIOParts; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetSex(pMiddleName: String): Integer; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+//Выстраивание ФИО в порядке Ф.И.О. например из И.О.Ф.
+function FormingFIO(pFIO: String): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+//файл исключений
+//function GetExceptionsFileName: String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function GetDictionary: String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function UpdateExceptions: Boolean; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function SetDictionary(FileName: String): Boolean; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+//числительные
+function DoubleToVerbal(Value: Extended): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function NumberToString(Value: Extended; iSex: Integer; Decimal: Integer; RemoveZero, CnvtFrac: Boolean): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF} export;
+function SumInWords(Value: String; iSex: Integer; Decimal: Integer; RemoveZero, CnvtFrac: Boolean): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF} export;
+function DeclNumeral(Value: String; nPadeg: Integer; iSex: Integer; Order, Soul: Boolean): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF} export;
+function DeclCurrency(Quantity: Currency; CurrName: String; nPadeg: Integer; Forms: Byte = 0): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF} export;
+function GetCurrencyFile: String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function CatalogISO: String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+function NameCurrency(ISO: String): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+procedure DeInitialization; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+
+implementation
+
+{$IFDEF MSWINDOWS}
+uses
+  Windows;
+{$ENDIF}
+
+
+type
+  PPartsFIO = ^TPartsFIO;
+
+  TPartsFIO = record
+    pLastName, pFirstName, pMiddleName: String;
+    nLastName, nFirstName, nMiddleName: LongInt;
+  end;
+
+  TGetFIOParts = function(pFIO: PChar; Parts: PPartsFIO): Integer; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetIFPadeg = function(pFirstName, pLastName: PChar; bSex: Boolean; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetIFPadegFS = function(pIF: PChar; bSex: Boolean; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetFIOPadeg = function(pLastName, pFirstName, pMiddleName: PChar; bSex: Boolean; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetFIOPadegAS = function(pLastName, pFirstName, pMiddleName: PChar; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetFIOPadegFS = function(pFIO: PChar; bSex: Boolean; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetFIOPadegFSAS = function(pFIO: PChar; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetNominativePadeg = function(pFIO, pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl;
+{$ELSE} stdcall; {$ENDIF}
+  TUpdateExceptions = function: Boolean; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TSetDictionary = function(DicName: PChar): Boolean; {$IFDEF CDECL} cdecl;
+{$ELSE} stdcall; {$ENDIF}
+  TGetSex = function(pMiddleName: PChar): Integer; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetNameFileExceptions = function(pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall;
+{$ENDIF}
+  TFormingFIO = function(pFIO: PChar; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetAppointmentPadeg = function(pAppointment: PChar; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetFullAppointmentPadeg = function(pAppointment, pOffice: PChar; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetOfficePadeg = function(pOffice: PChar; nPadeg: LongInt; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TFloatToVerbal = function(Value: Extended; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl;
+{$ELSE} stdcall; {$ENDIF}
+  TSumInWords = function(Value: PChar; iSex: Integer; Decimal: Integer; RemoveZero, CnvtFrac: Boolean; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TNumberToString = function(Value: Extended; iSex: Integer; Decimal: Integer; RemoveZero, CnvtFrac: Boolean; pResult: PChar;
+    var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TDeclCurrency = function(Quantity: Currency; CurrName: PChar; nPadeg: Integer; Forms: Byte; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TDeclNumeral = function(Value: PChar; nPadeg: Integer; iSex: Integer; Order, Soul: Boolean; pResult: PChar; var nLen: LongInt): Integer;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  TGetCurrencyFile = function(pResult: PChar; var nLen: LongInt): Integer; {$IFDEF CDECL} cdecl; {$ELSE} stdcall;
+{$ENDIF}
+  TCatalogISO = function(pResult: PChar; var nLen: LongInt): Integer; {$IFDEF CDECL} cdecl; {$ELSE} stdcall;
+{$ENDIF}
+  TNameCurrency = function(pISO: PChar; pResult: PChar; var nLen: LongInt): Integer; {$IFDEF CDECL} cdecl;
+{$ELSE} stdcall; {$ENDIF}
+
+const
+  LibNotFound: string = 'Библиотека "%s" не найдена';
+  funNotFound: string = 'Функция "%s" в библиотеке "%s" не найдена';
+
+var
+  FunctLib: PChar;
+
+procedure CreateError(error: Integer);
+var
+  ErrMsg: String;
+begin
+  (* -1 - недопустимое значение падежа;
+    -2 - недопустимое значение рода;
+    -3 - размер буфера недостаточен для размещения результата преобразования ФИО. *)
+  case error of
+    - 1: ErrMsg := 'Недопустимое значение падежа';
+    -2: ErrMsg := 'Недопустимое значение рода';
+    -3: ErrMsg := 'Размер буфера недостаточен для размещения результата преобразования ФИО';
+  else
+    ErrMsg := 'Неизвестный код ошибки: ' + IntToStr(error);
+  end;
+//  Log.error(ErrMsg, 'CreateError');
+//  Exception.Create(ErrMsg);
+end;
+
+function GetSex(pMiddleName: String): Integer; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pGetSex: TGetSex;
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetSex';
+  pGetSex := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetSex) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  Result := pGetSex(PChar(pMiddleName));
+end;
+
+function GetExceptionsFileName: String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall;
+{$ENDIF}
+var
+  pGetNameFileExceptions: TGetNameFileExceptions;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetDictionary';
+  Result := '';
+  pGetNameFileExceptions := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetNameFileExceptions) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := StrAlloc(nLen);
+  try
+    error := pGetNameFileExceptions(res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetDictionary: String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall;
+{$ENDIF}
+var
+  pGetNameFileExceptions: TGetNameFileExceptions;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetDictionary';
+  Result := '';
+  pGetNameFileExceptions := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetNameFileExceptions) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := StrAlloc(nLen);
+  try
+    error := pGetNameFileExceptions(res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function UpdateExceptions;
+var
+  pUpdateExceptions: TUpdateExceptions;
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'UpdateExceptions';
+  //(pathDic: PChar = nil): Boolean; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+  pUpdateExceptions := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pUpdateExceptions) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  Result := pUpdateExceptions;
+end;
+
+function GetFIOParts(pFIO: String): TFIOParts; {$IFDEF CDECL} cdecl;
+{$ELSE} stdcall; {$ENDIF}
+var
+  pGetFIOParts: TGetFIOParts;
+  Parts: TPartsFIO;
+  error: Integer;
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetFIOParts';
+  pGetFIOParts := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  Result.LastName := '';
+  Result.FirstName := '';
+  Result.MiddleName := '';
+  if not Assigned(pGetFIOParts) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  //распределение памяти под результат
+  //????? по половине входной строки должно хватить  как показала практика не хватает, напр. Ая Тевис
+  //поставил заведомо больше
+  SetLength(Parts.pLastName, Length(pFIO));
+  SetLength(Parts.pFirstName, Length(pFIO));
+  SetLength(Parts.pMiddleName, Length(pFIO));
+  Parts.nLastName := Length(pFIO);
+  Parts.nFirstName := Length(pFIO);
+  Parts.nMiddleName := Length(pFIO);
+  error := pGetFIOParts(PChar(pFIO), @Parts);
+  if error <> 0 then
+    CreateError(error);
+  //уточнение результатов
+  //поставил заведомо больше
+  SetLength(Parts.pLastName, Parts.nLastName);
+  SetLength(Parts.pFirstName, Parts.nFirstName);
+  SetLength(Parts.pMiddleName, Parts.nMiddleName);
+  Result.LastName := Parts.pLastName;
+  Result.FirstName := Parts.pFirstName;
+  Result.MiddleName := Parts.pMiddleName;
+end;
+
+function GetIFPadegFS;
+var
+  pGetIFPadegFS: TGetIFPadegFS;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetIFPadegFS';
+  Result := '';
+  pGetIFPadegFS := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetIFPadegFS) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pIF) + 10;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pGetIFPadegFS(PChar(pIF), bSex, nPadeg, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetIFPadeg;
+var
+  pGetIFPadeg: TGetIFPadeg;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetIFPadeg';
+  Result := '';
+  pGetIFPadeg := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetIFPadeg) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pFirstName + pLastName) + 10;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pGetIFPadeg(PChar(pFirstName), PChar(pLastName), bSex, nPadeg, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetFIOPadegFSAS;
+var
+  pGetFIOPadegFSAS: TGetFIOPadegFSAS;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetFIOPadegFSAS';
+  Result := '';
+  pGetFIOPadegFSAS := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetFIOPadegFSAS) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pFIO) + 10;
+  res := PChar(StrAlloc(nLen));
+  try
+{$IFDEF CODESITE}
+    CodeSite.Send(pFIO);
+{$ENDIF}
+    error := pGetFIOPadegFSAS(PChar(pFIO), nPadeg, res, nLen);
+{$IFDEF CODESITE}
+    CodeSite.Send(res);
+{$ENDIF}
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function FormingFIO(pFIO: String): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pFormingFIO: TFormingFIO;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'FormingFIO';
+  Result := '';
+  pFormingFIO := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pFormingFIO) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pFIO) + 10;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pFormingFIO(PWideChar(pFIO), res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetFIOPadegFS(pFIO: String; bSex: Boolean; nPadeg: LongInt): String;
+var
+  pGetFIOPadegFS: TGetFIOPadegFS;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetFIOPadegFS';
+  Result := '';
+  pGetFIOPadegFS := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetFIOPadegFS) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pFIO) + 10;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pGetFIOPadegFS(PChar(pFIO), bSex, nPadeg, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetFIOPadegAS;
+var
+  pGetFIOPadegAS: TGetFIOPadegAS;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetFIOPadegAS';
+  Result := '';
+  nLen := Length(pLastName + pFirstName + pMiddleName) + 10;
+  res := PChar(StrAlloc(nLen));
+  pGetFIOPadegAS := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetFIOPadegAS) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pLastName + ' ' + pFirstName + ' ' + pMiddleName) + 10;
+  try
+    error := pGetFIOPadegAS(PChar(pLastName), PChar(pFirstName), PChar(pMiddleName), nPadeg, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetFIOPadeg(pLastName, pFirstName, pMiddleName: String; bSex: Boolean; nPadeg: LongInt): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pGetFIOPadeg: TGetFIOPadeg;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetFIOPadeg';
+  Result := '';
+  pGetFIOPadeg := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetFIOPadeg) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pLastName + pFirstName + pMiddleName) + 10;
+  res := StrAlloc(nLen);
+  try
+    error := pGetFIOPadeg(PChar(pLastName), PChar(pFirstName), PChar(pMiddleName), bSex, nPadeg, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetNominativePadeg;
+var
+  pGetNominativePadeg: TGetNominativePadeg;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetNominativePadeg';
+  Result := '';
+  nLen := Length(pFIO) + 10;
+  res := PChar(StrAlloc(nLen));
+  pGetNominativePadeg := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetNominativePadeg) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  try
+    error := pGetNominativePadeg(PChar(pFIO), res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetAppointment;
+var
+  pGetAppointmentPadeg: TGetAppointmentPadeg;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetAppointmentPadeg';
+  Result := '';
+  pGetAppointmentPadeg := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetAppointmentPadeg) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pAppointment) + 10;
+  res := PChar(StrAlloc(nLen));
+  try
+    //error:=pGetAppointmentPadeg(PChar(pLastName), PChar(pFirstName), PChar(pMiddleName), bSex, nPadeg, res, nLen);
+    error := pGetAppointmentPadeg(PChar(pAppointment), nPadeg, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetFullAppointment(pAppointment, pOffice: String; nPadeg: LongInt): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pGetFullAppointmentPadeg: TGetFullAppointmentPadeg;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetFullAppointmentPadeg';
+  Result := '';
+  pGetFullAppointmentPadeg := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetFullAppointmentPadeg) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pAppointment + pOffice) + 20;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pGetFullAppointmentPadeg(PChar(pAppointment), PChar(pOffice), nPadeg, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function GetOffice(pOffice: String; nPadeg: LongInt): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pGetOfficePadeg: TGetOfficePadeg;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetOfficePadeg';
+  Result := '';
+  pGetOfficePadeg := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetOfficePadeg) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := Length(pOffice) + 10;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pGetOfficePadeg(PChar(pOffice), nPadeg, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function SetDictionary(FileName: String): Boolean; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pSetDictionary: TSetDictionary;
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'SetDictionary';
+  pSetDictionary := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pSetDictionary) then begin
+    Result := False;
+    //Log.error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'ERROR');
+  end
+  else
+    Result := pSetDictionary(PChar(FileName));
+end;
+
+function DoubleToVerbal(Value: Extended): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pFloatToVerbal: TFloatToVerbal;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'DoubleToVerbal';
+  Result := '';
+  pFloatToVerbal := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pFloatToVerbal) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pFloatToVerbal(Value, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function SumInWords(Value: String; iSex: Integer; Decimal: Integer; RemoveZero, CnvtFrac: Boolean): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall;
+{$ENDIF} export;
+var
+  pSumInWords: TSumInWords;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'SumInWords';
+  Result := '';
+  pSumInWords := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pSumInWords) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pSumInWords(PChar(Value), iSex, Decimal, RemoveZero, CnvtFrac, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function NumberToString(Value: Extended; iSex: Integer; Decimal: Integer; RemoveZero, CnvtFrac: Boolean): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF} export;
+var
+  pNumberToString: TNumberToString;
+{$INCLUDE padegLocVar.inc}
+begin;
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'NumberToString';
+  Result := '';
+  pNumberToString := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pNumberToString) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := PChar(StrAlloc(nLen));
+  try
+    //function(InN: Extended; iSex: Integer; Decimal: Integer; RemoveZero, CnvtFrac: Boolean; pResult: PChar): Integer;
+    error := pNumberToString(Value, iSex, Decimal, RemoveZero, CnvtFrac, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function DeclCurrency(Quantity: Currency; CurrName: String; nPadeg: Integer; Forms: Byte = 0): String;
+{$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF} export;
+var
+  pDeclCurrency: TDeclCurrency;
+{$INCLUDE padegLocVar.inc }
+begin;
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'DeclCurrency';
+  Result := '';
+  pDeclCurrency := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pDeclCurrency) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pDeclCurrency(Quantity, PChar(CurrName), nPadeg, Forms, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function DeclNumeral(Value: String; nPadeg: Integer; iSex: Integer; Order, Soul: Boolean): String;
+{$IFDEF CDECL} cdecl;
+{$ELSE} stdcall; {$ENDIF} export;
+var
+  pDeclNumeral: TDeclNumeral;
+{$INCLUDE padegLocVar.inc }
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'DeclNumeral';
+  Result := '';
+  pDeclNumeral := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pDeclNumeral) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pDeclNumeral(PChar(Value), nPadeg, iSex, Order, Soul, res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+{ TPadegLiblary }
+class function TPadegLiblary.LoadPadeg(UpdateFileExcept: Boolean): Integer;
+(* var
+  buffer: array [0..MAX_PATH] of Char;
+  str: String; *)
+begin
+  try
+    if LibPadeg = 0 then
+      //LibPadeg := LoadLibrary(PWideChar(TPadegLiblary.LibName));
+      LibPadeg := SafeLoadLibrary(PWideChar(TPadegLiblary.LibName));
+  except
+    LibPadeg := LibPadeg;
+  end;
+  Result := LibPadeg;
+  if LibPadeg = 0 then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(LibNotFound, [TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+    //Log.error('Библиотека ' + TPadegLiblary.LibName + ' не найдена.', 'ERROR');
+  end
+  else begin
+    (* GetModuleFileName(LibPadeg, buffer, MAX_PATH); // проверка пути к DLL
+      str:=buffer; *)
+    if UpdateFileExcept then
+      if not UpdateExceptions then
+        Result := -1;
+  end;
+end;
+
+function GetCurrencyFile: String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pGetCurrencyFile: TGetCurrencyFile;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'GetCurrencyFile';
+  Result := '';
+  pGetCurrencyFile := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pGetCurrencyFile) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := StrAlloc(nLen);
+  try
+    error := pGetCurrencyFile(res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function CatalogISO: String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pISOs: TCatalogISO;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'CatalogISO';
+  Result := '';
+  pISOs := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pISOs) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := 1000;
+  res := StrAlloc(nLen);
+  try
+    error := pISOs(res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+function NameCurrency(ISO: String): String; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pNameCurrency: TNameCurrency;
+{$INCLUDE padegLocVar.inc}
+begin
+  TPadegLiblary.LoadPadeg;
+  FunctLib := 'NameCurrency';
+  Result := '';
+  pNameCurrency := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+  if not Assigned(pNameCurrency) then begin
+{$IFDEF RAISEERROR}
+    raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+    //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+{$ELSE}
+    Exit;
+{$ENDIF}
+  end;
+  nLen := (* Length(ISO) + *) 200;
+  res := PChar(StrAlloc(nLen));
+  try
+    error := pNameCurrency(PChar(ISO), res, nLen);
+    if error = 0 then
+      SetString(Result, res, nLen)
+    else
+      CreateError(error);
+  finally
+    StrDispose(res);
+  end;
+end;
+
+procedure DeInitialization; {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+var
+  pDeInit: procedure(); {$IFDEF CDECL} cdecl; {$ELSE} stdcall; {$ENDIF}
+begin
+  FunctLib := 'DeInitialization';
+  if TPadegLiblary.LibPadeg > 0 then begin //если = 0 нет смысла деинициализировать
+    pDeInit := GetProcAddress(TPadegLiblary.LibPadeg, FunctLib);
+    if Assigned(pDeInit) then begin
+      //Log.Debug('Библиотека успешно выгружена.', 'DeInitialization');
+      pDeInit;
+    end
+    else begin
+      raise Exception.Create(Format(funNotFound, [FunctLib, TPadegLiblary.LibName]));
+      //Log.Error(funNotFound, [FunctLib, TPadegLiblary.LibName], 'FATAL');
+    end;
+  end;
+end;
+
+end.

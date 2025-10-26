@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.803,D:\DevelopXE\Declen\trunk\clTest\ctTest.dproj=D:\DevelopXE\Declen\trunk\TestMem\ctMem.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.468,D:\DevelopXE\loggerpro-2.0\LoggerPro.GlobalLogger.pas=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.237,=D:\DevelopXE\loggerpro-2.0\LoggerPro.GlobalLogger.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.100,=D:\DevelopXE\Declen\trunk\PadegUTF\padegLocVar.inc</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.607,D:\DevelopXE\Project1.dproj=D:\DevelopXE\Declension\trunk\TestMem\ctMem.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.506,D:\DevelopXE\Declen\trunk\clTest\ctConst.pas=D:\DevelopXE\Declen\trunk\TestMem\ctConst.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.064,=D:\DevelopXE\Declen\trunk\padegLocVar.inc</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.556,=D:\DevelopXE\Declen\trunk\PadegUTF\AddSyllable.inc</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.425,D:\DevelopXE\Declen\trunk\PadegUTF\AddSyllable.inc=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.399,=C:\DevelopXE\Declension\trunk\TestMem\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.691,C:\DevelopXE\Declension\trunk\TestMem\Unit1.pas=C:\DevelopXE\Declension\trunk\TestMem\PadegLibrary.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.178,D:\DevelopXE\Declension\trunk\TestMem\ctMem.dproj=D:\DevelopXE\Declension\trunk\TestMem\ctMem.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.509,D:\DevelopXE\Declen\trunk\clTest\PadegLibrary.pas=D:\DevelopXE\Declen\trunk\TestMem\PadegLibrary.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.808,=C:\DevelopXE\Declension\padegLocVar.inc</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.025,C:\DevelopXE\Declen\trunk\PadegUTF\LoggerPro.PadegLogger.pas=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.225,=C:\DevelopXE\Declen\trunk\PadegUTF\LoggerPro.PadegLogger.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.903,C:\DevelopXE\Declen\trunk\PadegUTF\padegLocVar.inc=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.197,=D:\DevelopXE\Declen\trunk\clTest\LoggerPro.PadegLogger.pas</Transaction>
+  </Transactions>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="..\..\..\Declension"/>
+    <File Path="..\..\padegLocVar.inc"/>
+    <File Path="ctConst.pas"/>
+    <File Path="PadegLibrary.pas"/>
+  </ProjectSortOrder>
+</BorlandProject>

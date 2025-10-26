@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{033CE2DD-CA82-42B8-9B3B-D161EA10E3C6}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="FIOSample.cbproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\NET_SO_DLL\PadegNET.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="FIOSample">
+        <MSBuild Projects="FIOSample.cbproj"/>
+    </Target>
+    <Target Name="FIOSample:Clean">
+        <MSBuild Projects="FIOSample.cbproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FIOSample:Make">
+        <MSBuild Projects="FIOSample.cbproj" Targets="Make"/>
+    </Target>
+    <Target Name="PadegNET">
+        <MSBuild Projects="..\NET_SO_DLL\PadegNET.dproj"/>
+    </Target>
+    <Target Name="PadegNET:Clean">
+        <MSBuild Projects="..\NET_SO_DLL\PadegNET.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PadegNET:Make">
+        <MSBuild Projects="..\NET_SO_DLL\PadegNET.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="FIOSample;PadegNET"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="FIOSample:Clean;PadegNET:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="FIOSample:Make;PadegNET:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

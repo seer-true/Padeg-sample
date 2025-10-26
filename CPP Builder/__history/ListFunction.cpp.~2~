@@ -1,0 +1,307 @@
+#pragma hdrstop
+#pragma argsused
+
+#ifdef _WIN32
+    #include <tchar.h>
+#else
+typedef char _TCHAR;
+    #define _tmain main
+#endif
+
+#include <stdio.h>
+#include <windows.h>
+#include <iostream.h>
+// #include <Vcl.Dialogs.hpp>
+
+struct FIO
+{
+    FIO(int lenght = 30)
+    {
+        this->nLastName = lenght;
+        this->nFirstName = lenght;
+        this->nMiddleName = lenght;
+        this->pLastName = new wchar_t[lenght];
+        this->pFirstName = new wchar_t[lenght];
+        this->pMiddleName = new wchar_t[lenght];
+    }
+
+    wchar_t* pLastName;
+    wchar_t* pFirstName;
+    wchar_t* pMiddleName;
+    int nLastName;
+    int nFirstName;
+    int nMiddleName;
+};
+
+HINSTANCE hDLL; // хендл библиотеки DLL
+
+// объ€влени€ используемых функций
+typedef int(__stdcall* LPFNGetFIOPadegAS)(
+    unsigned char*, unsigned char*, unsigned char*, int, unsigned char*, int &);
+LPFNGetFIOPadegAS lpfnGetFIOPadegAS; // проверил
+
+typedef int(__stdcall* LPFNGetFullAppointmentPadeg)(
+    wchar_t*, wchar_t*, int, wchar_t*, int &); // проверил
+LPFNGetFullAppointmentPadeg lpfnGetFullAppointmentPadeg;
+
+typedef int(__stdcall* LPFNGetFIOPadegFS)(
+    unsigned char*, bool, int, unsigned char*, int &);
+LPFNGetFIOPadegFS lpfnGetFIOPadegFS; // проверил
+
+typedef int(__stdcall* LPFNGetFIOPadeg)(
+    wchar_t*, wchar_t*, wchar_t*, bool, int, wchar_t*, int &);
+LPFNGetFIOPadeg lpfnGetFIOPadeg; // проверил
+
+typedef int(__stdcall* LPFNGetFIOPadegFSAS)(
+    unsigned char*, int, unsigned char*, int &);
+LPFNGetFIOPadegFSAS lpfnGetFIOPadegFSAS; // проверил
+
+typedef int(__stdcall* LPFNGetIFPadeg)(
+    unsigned char*, unsigned char*, bool, int, unsigned char*, int &);
+LPFNGetIFPadeg lpfnGetIFPadeg; // проверил
+
+typedef int(__stdcall* LPFNGetIFPadegFS)(
+    unsigned char*, bool, int, unsigned char*, int &);
+LPFNGetIFPadegFS lpfnGetIFPadegFS; // проверил
+
+typedef int(__stdcall* LPFNGetNominativePadeg)(
+    unsigned char*, unsigned char*, int &);
+LPFNGetNominativePadeg lpfnGetNominativePadeg; // проверил
+
+typedef int(__stdcall* LPFNGetAppointmentPadeg)(wchar_t*, int, wchar_t*, int &);
+LPFNGetAppointmentPadeg lpfnGetAppointmentPadeg; // проверил
+
+typedef int(__stdcall* LPFNGetOfficePadeg)(wchar_t*, int, wchar_t*, int &);
+// проверил
+LPFNGetOfficePadeg lpfnGetOfficePadeg; // проверил
+
+// сервисные функции
+
+typedef int(__stdcall* LPFNGetSex)(wchar_t*);
+LPFNGetSex lpfnGetSex; // проверил
+
+// typedef int(__stdcall*LPFNGetPadegID)(unsigned char *);
+// LPFNGetPadegID lpfnGetPadegID;
+
+typedef int(__stdcall* LPFNGetFIOParts)(wchar_t*, FIO*);
+LPFNGetFIOParts lpfnGetFIOParts; // проверил
+
+// функции работы со словарем
+typedef int(__stdcall* LPFNGetExceptionsFileName)(wchar_t*, int &);
+LPFNGetExceptionsFileName lpfnGetExceptionsFileName; // проверил
+
+typedef int(__stdcall* LPFNSetDictionary)(wchar_t*);
+LPFNSetDictionary lpfnSetDictionary; // проверил
+
+typedef int(__stdcall* LPFNUpdateExceptions);
+LPFNUpdateExceptions lpfnUpdateExceptions; // проверил
+
+bool updateDict()
+{
+	hDLL = LoadLibrary(L"PadegUC.dll");
+	if (hDLL == NULL) // ошибка загрузки библиотеки
+    {
+        cout << "Unable to load library!" << endl;
+        return 0;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnUpdateExceptions =
+        (LPFNUpdateExceptions)GetProcAddress(hDLL, "UpdateExceptions");
+    if (lpfnUpdateExceptions == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return 0;
+    }
+    return lpfnUpdateExceptions;
+}
+
+bool setDict(wchar_t* fileName)
+{
+    hDLL = LoadLibrary(L"PadegUC.dll");
+    if (hDLL == NULL) // ошибка загрузки библиотеки
+    {
+        cout << "Unable to load library!" << endl;
+        return 0;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnSetDictionary =
+        (LPFNSetDictionary)GetProcAddress(hDLL, "SetDictionary");
+    if (lpfnSetDictionary == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return 0;
+    }
+    return lpfnSetDictionary(fileName);
+}
+
+wchar_t* getExceptionsFileName()
+{
+    wchar_t res[200];
+    hDLL = LoadLibrary(L"PadegUC.dll");
+    if (hDLL == NULL) // ошибка загрузки библиотеки
+    {
+        cout << "Unable to load library!" << endl;
+        return 0;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnGetExceptionsFileName = (LPFNGetExceptionsFileName)GetProcAddress(
+        hDLL, "GetExceptionsFileName");
+    if (lpfnGetExceptionsFileName == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return 0;
+    }
+    wchar_t rez[200];
+    int len = 200;
+    int iRez = lpfnGetExceptionsFileName(rez, len);
+    return rez;
+}
+
+wchar_t* getOfficePadeg(wchar_t* app, int padeg)
+{
+    hDLL = LoadLibrary(L"PadegUC.dll");
+    if (hDLL == NULL) // ошибка загрузки библиотеки
+    {
+        cout << "Unable to load library!" << endl;
+        return 0;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnGetOfficePadeg =
+        (LPFNGetOfficePadeg)GetProcAddress(hDLL, "GetOfficePadeg");
+    if (lpfnGetOfficePadeg == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return 0;
+    }
+    wchar_t rez[200];
+    int len = 200;
+    int iRez = lpfnGetOfficePadeg(app, padeg, rez, len);
+    return rez;
+}
+
+wchar_t* getAppointmentPadeg(wchar_t* app, int padeg)
+{
+    hDLL = LoadLibrary(L"PadegUC.dll");
+    if (hDLL == NULL) // ошибка загрузки библиотеки
+    {
+        cout << "Unable to load library!" << endl;
+        return 0;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnGetAppointmentPadeg =
+        (LPFNGetAppointmentPadeg)GetProcAddress(hDLL, "GetAppointmentPadeg");
+    if (lpfnGetAppointmentPadeg == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return 0;
+    }
+    wchar_t rez[200];
+    int len = 200;
+    int iRez = lpfnGetAppointmentPadeg(app, padeg, rez, len);
+    return rez;
+}
+
+wchar_t* getFullAppointmentPadeg(wchar_t* app, wchar_t* off, int pad)
+{
+    hDLL = LoadLibrary(L"PadegUC.dll");
+    if (hDLL == NULL) // ошибка загрузки библиотеки
+    {
+        cout << "Unable to load library!" << endl;
+        return 0;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnGetFullAppointmentPadeg = (LPFNGetFullAppointmentPadeg)GetProcAddress(
+        hDLL, "GetFullAppointmentPadeg");
+    if (lpfnGetFullAppointmentPadeg == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return 0;
+    }
+    wchar_t rez[200];
+    int len = 200;
+    int iRez = lpfnGetFullAppointmentPadeg(app, off, pad, rez, len);
+    return rez;
+}
+
+wchar_t* getFIOPadeg(
+    wchar_t* last, wchar_t* first, wchar_t* middle, int sex, int padeg)
+{
+    hDLL = LoadLibrary(L"PadegUC.dll");
+    //	hDLL = LoadLibrary(L"PadegNET.dll");
+    if (hDLL == NULL) // ошибка загрузки библиотеки
+    {
+        cout << "Unable to load library!" << endl;
+        return 0;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnGetFIOPadeg = (LPFNGetFIOPadeg)GetProcAddress(hDLL, "GetFIOPadeg");
+    if (lpfnGetFIOPadeg == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return 0;
+    }
+    int len = 200;
+    wchar_t fio[200];
+    bool f = true;
+    if (sex == 2) {
+        f = false;
+    }
+    int result = lpfnGetFIOPadeg(last, first, middle, f, padeg, fio, len);
+    return fio;
+}
+
+int getSex(wchar_t* fio)
+{
+	hDLL = LoadLibrary(L"PadegUC.dll");
+	if (hDLL == NULL) // ошибка загрузки библиотеки
+	{
+        cout << "Unable to load library!" << endl;
+		return -1;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnGetSex = (LPFNGetSex)GetProcAddress(hDLL, "GetSex");
+    if (lpfnGetSex == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return -2;
+    }
+    int key = lpfnGetSex(fio);
+	if (key == 1) {
+        return 1; // мужской пол
+    } else if (key == 0) {
+        return 2; // женский пол
+	} else {
+        return 0; // пол неопределен
+    }
+}
+
+FIO* getFIOParts(wchar_t* fio)
+{
+	hDLL = LoadLibrary(L"PadegUC.dll");
+	if (hDLL == NULL) // ошибка загрузки библиотеки
+    {
+		cout << "Unable to load library!" << endl;
+		return 0;
+    }
+
+    // получим указатель на нашу функцию
+    lpfnGetFIOParts = (LPFNGetFIOParts)GetProcAddress(hDLL, "GetFIOParts");
+    if (lpfnGetFIOParts == NULL) {
+        cout << "Unable to load function(s)." << endl;
+        FreeLibrary(hDLL);
+        return 0;
+    }
+    FIO* f = new FIO(wcslen(fio));
+    int iParam = lpfnGetFIOParts(fio, f);
+    FreeLibrary(hDLL);
+    return f;
+}
+
