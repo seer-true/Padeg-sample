@@ -576,7 +576,7 @@ object frmMainDecl: TfrmMainDecl
         TabOrder = 1
       end
       object bDeclNum: TButton
-        Left = 473
+        Left = 474
         Top = 183
         Width = 217
         Height = 25
