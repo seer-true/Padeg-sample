@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, padegFIO, ComCtrls, UITypes, Vcl.Samples.Spin, Vcl.Mask (*,
+  StdCtrls, ExtCtrls, padegFIO, ComCtrls, UITypes, Vcl.Samples.Spin, Vcl.Mask, Vcl.Buttons (*,
     Data.Bind.Components*);
 
 type
@@ -92,6 +92,7 @@ type
     dlgOpenHdbk: TOpenDialog;
     lblDict: TLabel;
     lblNdbk: TLabel;
+    SpeedButton1: TSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure btnDeclClick(Sender: TObject);
     procedure btnClearResultClick(Sender: TObject);
@@ -125,6 +126,7 @@ type
     procedure btn1Click(Sender: TObject);
     procedure tsDictShow(Sender: TObject);
     procedure btnViewHdbkClick(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     { Private declarations }
     //BindScope1: TBindScope;
@@ -247,6 +249,11 @@ begin
       pgcResult.ActivePageIndex := 1; (* 3:
       lblNdbk.Caption:='Справочник валют: ' + GetCurrencyFile; *)
   end;
+end;
+
+procedure TfrmMainDecl.SpeedButton1Click(Sender: TObject);
+begin
+  mResult.Lines.Add('Валюта: "' + NameCurrency(cbCurr.Text) + '"');
 end;
 
 procedure TfrmMainDecl.tsDictShow(Sender: TObject);

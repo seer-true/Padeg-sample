@@ -717,10 +717,24 @@ object frmMainDecl: TfrmMainDecl
           Height = 13
           Caption = #1060#1086#1088#1084#1072' '#1074#1099#1074#1086#1076#1072
         end
+        object SpeedButton1: TSpeedButton
+          Left = 219
+          Top = 21
+          Width = 23
+          Height = 22
+          Caption = '$'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          Font.Style = [fsBold]
+          ParentFont = False
+          OnClick = SpeedButton1Click
+        end
         object cbCurr: TComboBox
           Left = 46
           Top = 22
-          Width = 196
+          Width = 167
           Height = 21
           TabOrder = 0
         end
@@ -852,7 +866,7 @@ object frmMainDecl: TfrmMainDecl
     Top = 252
     Width = 702
     Height = 219
-    ActivePage = tsResult
+    ActivePage = tsLog
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
